@@ -1,5 +1,6 @@
 from core.models.assignments import AssignmentStateEnum, GradeEnum
-
+from core import db
+from core.models.assignments import Assignment, AssignmentStateEnum, GradeEnum
 
 def test_get_assignments(client, h_principal):
     response = client.get(
@@ -25,10 +26,17 @@ def test_grade_assignment_draft_assignment(client, h_principal):
     """
     failure case: If an assignment is in Draft state, it cannot be graded by principal
     """
+    assignment = Assignment(
+            student_id=1,
+            content='test content',
+            state=AssignmentStateEnum.DRAFT
+    )
+    db.session.add(assignment)
+    db.session.commit()
     response = client.post(
         '/principal/assignments/grade',
         json={
-            'id': 3,
+            'id': assignment.id,
             'grade': GradeEnum.A.value
         },
         headers=h_principal

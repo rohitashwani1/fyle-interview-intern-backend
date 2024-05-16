@@ -106,10 +106,17 @@ def test_grade_assignment_draft_assignment(client, h_teacher_2):
     """
     failure case: If an assignment is in Draft state, it cannot be graded by principal
     """
+    assignment = Assignment(
+            student_id=1,
+            content='test content',
+            state=AssignmentStateEnum.DRAFT
+    )
+    db.session.add(assignment)
+    db.session.commit()
     response = client.post(
         '/teacher/assignments/grade',
         json={
-            'id': 3,
+            'id': assignment.id,
             'grade': GradeEnum.A.value
         },
         headers=h_teacher_2
