@@ -46,6 +46,24 @@ def create_n_graded_assignments_for_teacher(number: int = 0, teacher_id: int = 1
     # Commit changes to the database
     db.session.commit()
 
+    # Teacher with highest assignment checked
+    teacher_id = -1
+    max = -1
+    for i in [1,2]:
+        count = Assignment.filter(
+            Assignment.teacher_id == i,
+            Assignment.state == "GRADED"
+        ).count()
+        
+        if(max < count):
+            max = count
+            teacher_id = i
+    
+    grade_a_counter: int = Assignment.filter(
+        Assignment.teacher_id == i,
+        Assignment.grade == GradeEnum.A
+    ).count()
+    
     # Return the count of assignments with grade 'A'
     return grade_a_counter
 

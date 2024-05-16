@@ -23,15 +23,15 @@ def list_assignments(p):
 def grade_assignment(p, incoming_payload):
     """Grade an assignment"""
     grade_assignment_payload = AssignmentGradeSchema().load(incoming_payload)
-
     graded_assignment = Assignment.mark_grade(
         _id=grade_assignment_payload.id,
         grade=grade_assignment_payload.grade,
         auth_principal=p
     )
+    if(graded_assignment == "error1"):
+        return APIResponse.respond(data={'error': 'FyleError',"message":'Assignment is in Draft state'}, status=400)
     if(graded_assignment == "error"):
         return APIResponse.respond(data={'error': 'FyleError',"message":'this assignment is not submitted to you.'}, status=400)
-    
     db.session.commit()
     graded_assignment_dump = AssignmentSchema().dump(graded_assignment)
     return APIResponse.respond(data=graded_assignment_dump)

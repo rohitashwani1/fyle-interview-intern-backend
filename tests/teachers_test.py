@@ -1,3 +1,6 @@
+from core import db
+from core.models.assignments import Assignment, AssignmentStateEnum, GradeEnum
+
 def test_get_assignments_teacher_1(client, h_teacher_1):
     response = client.get(
         '/teacher/assignments',
@@ -62,7 +65,6 @@ def test_grade_assignment_bad_grade(client, h_teacher_1):
 
     assert data['error'] == 'ValidationError'
 
-
 def test_grade_assignment_bad_assignment(client, h_teacher_1):
     """
     failure case: If an assignment does not exists check and throw 404
@@ -99,3 +101,42 @@ def test_grade_assignment_draft_assignment(client, h_teacher_1):
     data = response.json['data']
 
     assert data['error'] == 'FyleError'
+
+def test_grade_assignment_draft_assignment(client, h_teacher_2):
+    """
+    failure case: If an assignment is in Draft state, it cannot be graded by principal
+    """
+    response = client.post(
+        '/teacher/assignments/grade',
+        json={
+            'id': 3,
+            'grade': GradeEnum.A.value
+        },
+        headers=h_teacher_2
+    )
+    # Here the assiggment mentioned was not in DRAFT state
+    # So replace the id of assignment with a draft state assignment
+
+    assert response.status_code == 400
+
+def test_grade_post_correctly(client,h_teacher_1):
+    """
+    postitive case
+    """
+    assignment = Assignment(
+            teacher_id=1,
+            student_id=1,
+            content='test content',
+            state=AssignmentStateEnum.SUBMITTED
+    )
+    db.session.add(assignment)
+    db.session.commit()
+    response = client.post(
+        '/teacher/assignments/grade',
+        headers=h_teacher_1
+        , json={
+            "id": assignment.id,
+            "grade": "A"
+        }
+    )
+    assert response.status_code == 200
