@@ -24,7 +24,8 @@ def upsert_assignment(p, incoming_payload):
     """Create or Edit an assignment"""
     assignment = AssignmentSchema().load(incoming_payload)
     assignment.student_id = p.student_id
-
+    if assignment.content == None:
+        return APIResponse.respond(data={'error': 'Content cannot be null'},status=400)
     upserted_assignment = Assignment.upsert(assignment)
     db.session.commit()
     upserted_assignment_dump = AssignmentSchema().dump(upserted_assignment)
@@ -37,12 +38,14 @@ def upsert_assignment(p, incoming_payload):
 def submit_assignment(p, incoming_payload):
     """Submit an assignment"""
     submit_assignment_payload = AssignmentSubmitSchema().load(incoming_payload)
-
     submitted_assignment = Assignment.submit(
         _id=submit_assignment_payload.id,
         teacher_id=submit_assignment_payload.teacher_id,
         auth_principal=p
     )
+    if(submitted_assignment == "error"):
+        return APIResponse.respond(data={'error': 'FyleError',"message":'only a draft assignment can be submitted'}, status=400)
     db.session.commit()
     submitted_assignment_dump = AssignmentSchema().dump(submitted_assignment)
     return APIResponse.respond(data=submitted_assignment_dump)
+    # return APIResponse.respond(data={'error': 'only a draft assignment can be submitted'}, status=400)

@@ -12,7 +12,7 @@ teacher_assignments_resources = Blueprint('teacher_assignments_resources', __nam
 @decorators.authenticate_principal
 def list_assignments(p):
     """Returns list of assignments"""
-    teachers_assignments = Assignment.get_assignments_by_teacher()
+    teachers_assignments = Assignment.get_assignments_by_teacher(p.teacher_id)
     teachers_assignments_dump = AssignmentSchema().dump(teachers_assignments, many=True)
     return APIResponse.respond(data=teachers_assignments_dump)
 
@@ -29,6 +29,9 @@ def grade_assignment(p, incoming_payload):
         grade=grade_assignment_payload.grade,
         auth_principal=p
     )
+    if(graded_assignment == "error"):
+        return APIResponse.respond(data={'error': 'FyleError',"message":'this assignment is not submitted to you.'}, status=400)
+    
     db.session.commit()
     graded_assignment_dump = AssignmentSchema().dump(graded_assignment)
     return APIResponse.respond(data=graded_assignment_dump)

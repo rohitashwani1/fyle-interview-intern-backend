@@ -21,11 +21,13 @@ def test_grade_assignment_draft_assignment(client, h_principal):
     response = client.post(
         '/principal/assignments/grade',
         json={
-            'id': 5,
+            'id': 3,
             'grade': GradeEnum.A.value
         },
         headers=h_principal
     )
+    # Here the assiggment mentioned was not in DRAFT state
+    # So replace the id of assignment with a draft state assignment
 
     assert response.status_code == 400
 
